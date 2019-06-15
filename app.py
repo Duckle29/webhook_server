@@ -1,7 +1,8 @@
-from flask import Flask, request
+from flask import Flask
 from flask_hookserver import Hooks
 
 from werkzeug.middleware.proxy_fix import ProxyFix
+from werkzeug.exceptions import InternalServerError
 
 from os import getenv
 import subprocess
@@ -30,7 +31,7 @@ def website_deploy(data, guid):
     try:
         subprocess.run(['/usr/bin/git',  'pull'], cwd='/srv/mikkel.cc', check=True)
     except subprocess.CalledProcessError as err:
-        return err, 500
+        raise InternalServerError(err)
 
     return 'Deployed website'
 
