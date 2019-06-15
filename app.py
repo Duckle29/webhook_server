@@ -26,7 +26,7 @@ def website_deploy(data, guid):
         return 'Not production branch, skipped.'
 
     try:
-        subprocess.run(['/usr/bin/git pull'], cwd='/srv/mikkel.cc', check=True)
+        subprocess.run(['/usr/bin/git',  'pull'], cwd='/srv/mikkel.cc', check=True)
     except subprocess.CalledProcessError as err:
         return err, 500
 
