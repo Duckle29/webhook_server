@@ -1,12 +1,14 @@
 from flask import Flask, request
 from flask_hookserver import Hooks
 
+from werkzeug.middleware.proxy_fix import ProxyFix
+
 from os import getenv
 import subprocess
-from hmac import digest, compare_digest
-from binascii import hexlify
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
+
 app.config['GITHUB_WEBHOOKS_KEY'] = getenv('WEBHOOKS_GH_SECRET')
 app.config['VALIDATE_IP'] = True
 app.config['VALIDATE_SIGNATURE'] = True
