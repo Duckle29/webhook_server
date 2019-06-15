@@ -11,7 +11,7 @@ app.config['GITHUB_WEBHOOKS_KEY'] = getenv('WEBHOOKS_GH_SECRET')
 app.config['VALIDATE_IP'] = True
 app.config['VALIDATE_SIGNATURE'] = True
 
-hooks_deploy_mikkel_cc = Hooks(app, url='/webhooks/deploy/mikkel.cc')
+hooks_deploy_mikkel_cc = Hooks(app, url='/deploy/mikkelcc')
 
 
 @hooks_deploy_mikkel_cc.hook('push')
