@@ -1,63 +1,36 @@
 from flask import Flask, request
+from flask_hookserver import Hooks
+
 from os import getenv
 import subprocess
 from hmac import digest, compare_digest
 from binascii import hexlify
 
 app = Flask(__name__)
+app.config['GITHUB_WEBHOOKS_KEY'] = getenv('WEBHOOKS_GH_SECRET')
+app.config['VALIDATE_IP'] = True
+app.config['VALIDATE_SIGNATURE'] = True
 
-SECRET = getenv('WEBHOOKS_GH_SECRET', 'NO_SECRET')\
-
-if SECRET == 'NO_SECRET':
-    print('The secret key hasn\'t been set!', flush=True)
-    exit(1)
-
-SECRET = SECRET.encode('utf-8')
+hooks_deploy_mikkel_cc = Hooks(app, url='/webhooks/deploy/mikkel.cc')
 
 
-def verify_signature():
-    gh_signature = request.headers.get('X-Hub-Signature')
-    hexdig = hexlify(digest(SECRET, request.get_data(), 'sha1'))
-    signature = 'sha1=' + hexdig.decode('utf-8')
-
-    return compare_digest(signature, gh_signature)
-
-
-def website_deploy():
-    subprocess.run(['/usr/bin/git pull'], cwd='/srv/mikkel.cc', check=True)
-
-
-@app.route('/github', methods=['POST'])
-def webhook():
-    payload = request.json
-
-    try:
-        repo = payload['repository']['full_name']
-        branch = payload['ref'].split('/')[-1]
-        master_branch = payload['repository']['master_branch']
-    except KeyError as err:
-        return 'Unexpected payload: {}'.format(err), 500
+@hooks_deploy_mikkel_cc.hook('push')
+def website_deploy(data, guid):
+    repo = data['repository']['full_name']
+    branch = data['ref'].split('/')[-1]
+    master_branch = data['repository']['master_branch']
 
     if repo != 'Duckle29/startbootstrap-resume':
-        return 'Nothing to do for this repo', 200
-
+        return 'Nothing to do for this repo, skipped.'
     if branch != master_branch:
-        return 'Not master, skipped', 200
+        return 'Not production branch, skipped.'
 
-    valid = verify_signature()
+    try:
+        subprocess.run(['/usr/bin/git pull'], cwd='/srv/mikkel.cc', check=True)
+    except subprocess.CalledProcessError as err:
+        return err, 500
 
-    if valid:
-        try:
-            website_deploy()
-        except subprocess.CalledProcessError as err:
-            return err, 500
-
-        return 'Deployed website', 200
-
-    if not valid:
-        return '', 401
-
-    return '', 500
+    return 'Deployed website'
 
 
 if __name__ == '__main__':
