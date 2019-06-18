@@ -4,17 +4,21 @@ from flask_hookserver import Hooks
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.exceptions import InternalServerError
 
-from os import getenv
 import subprocess
+import json
+
+config = {}
+with open('config.json') as json_file:
+    config = json.load(json_file)
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
 
-app.config['GITHUB_WEBHOOKS_KEY'] = getenv('WEBHOOKS_GH_SECRET')
+app.config['GITHUB_WEBHOOKS_KEY'] = config['gh_secret']
 app.config['VALIDATE_IP'] = True
 app.config['VALIDATE_SIGNATURE'] = True
 
-hooks_deploy_mikkel_cc = Hooks(app, url='/deploy/mikkelcc')
+hooks_deploy_mikkel_cc = Hooks(app, url=config['mikkel.cc']['endpoint'])
 
 
 @hooks_deploy_mikkel_cc.hook('push')
@@ -29,7 +33,7 @@ def website_deploy(data, guid):
         return 'Not production branch, skipped.'
 
     try:
-        subprocess.run(['/usr/bin/git',  'pull'], cwd='/srv/mikkel.cc', check=True)
+        subprocess.run(['/usr/bin/git',  'pull'], cwd=config['mikkel.cc']['path'], check=True)
     except subprocess.CalledProcessError as err:
         raise InternalServerError(err)
 
