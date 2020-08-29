@@ -1,4 +1,4 @@
-wheel==0.34.2
+wheel==0.34
 Flask==1.0
 Flask-Hookserver==1.1
 gunicorn==19.9
