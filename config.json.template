@@ -1,7 +1,0 @@
-{
-  "gh_secret": "",
-  "mikkel.cc": {
-    "path": "/srv/mikkel.cc",
-    "endpoint": "/deploy/mikkelcc"
-  }
-}
