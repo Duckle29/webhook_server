@@ -30,6 +30,7 @@ app.config['VALIDATE_SIGNATURE'] = True
 
 deploy_hook = Hooks(app, url=config['main']['endpoint'])
 
+init()
 
 @deploy_hook.hook('push')
 def deploy(data, guid):
@@ -85,5 +86,4 @@ def init():
                 raise InternalServerError(err)
 
 if __name__ == '__main__':
-    init()
     app.run()
