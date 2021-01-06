@@ -20,8 +20,6 @@ app.config['VALIDATE_SIGNATURE'] = True
 
 deploy_hook = Hooks(app, url=config['main']['endpoint'])
 
-init()
-
 @deploy_hook.hook('push')
 def deploy(data, guid):
     """Pulls the new site, triggered by a github webhook
@@ -64,16 +62,20 @@ def init():
         if site in ['DEFAULT', 'main']:
             continue
         
-        deploy_path = Path(config[repo]['path'])
+        deploy_path = Path(config[site]['path'])
 
         if not deploy_path.is_dir():
-            deploy_path.mkdir(parents=True)
-            command = [ '/usr/bin/git',  'clone', config[site]['clone_uri'] ]
+            raise FileNotFoundError('webroots have to be created and have appropriate permissions. {} is not a directory'.format(deploy_path))
+
+        if not (deploy_path / '.git').is_dir():
+            command = [ '/usr/bin/git',  'clone', config[site]['clone_uri'], '.' ]
 
             try:
                 subprocess.run(command, cwd=deploy_path, check=True)
             except subprocess.CalledProcessError as err:
                 raise InternalServerError(err)
+
+init()
 
 if __name__ == '__main__':
     app.run()
