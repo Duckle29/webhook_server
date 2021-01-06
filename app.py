@@ -1,6 +1,5 @@
 import subprocess
 from configparser import ConfigParser
-from argparse import ArgumentParser
 from pathlib import Path
 
 from flask import Flask
@@ -9,17 +8,8 @@ from flask_hookserver import Hooks
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.exceptions import InternalServerError
 
-parser = ArgumentParser()
-
-parser.add_argument('-c', '--config', default='config.ini', 
-    help='The path to the config')
-parser.add_argument('--gitpath', default='/usr/bin/git', 
-    help='Path of the git executable')
-
-args = parser.parse_args()
-
 config = ConfigParser(interpolation=None)
-config.read(args['config'])
+config.read('config.ini')
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1)
@@ -57,7 +47,7 @@ def deploy(data, guid):
         return 'Not production branch, skipped.'
 
     try:
-        subprocess.run([args['gitpath'],  'pull'], cwd=config[repo]['path'], check=True)
+        subprocess.run(['/usr/bin/git',  'pull'], cwd=config[repo]['path'], check=True)
     except subprocess.CalledProcessError as err:
         raise InternalServerError(err)
 
@@ -78,7 +68,7 @@ def init():
 
         if not deploy_path.is_dir():
             deploy_path.mkdir(parents=True)
-            command = [ args['gitpath'],  'clone', config[site]['clone_uri'] ]
+            command = [ '/usr/bin/git',  'clone', config[site]['clone_uri'] ]
 
             try:
                 subprocess.run(command, cwd=deploy_path, check=True)
