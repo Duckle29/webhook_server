@@ -58,6 +58,7 @@ def deploy(data, guid):
 
     for repo in config:
         if 'command' in config[repo]:
+            command = config[repo]['config']
             try:
                 subprocess.run(command, cwd=config[repo]['path'], shell=True, text=True, check=True)
             except subprocess.CalledProcessError as err:
