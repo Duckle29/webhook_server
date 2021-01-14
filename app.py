@@ -51,19 +51,17 @@ def deploy(data, guid):
         return 'Not production branch, skipped.'
 
     try:
-        subprocess.run(['/usr/bin/git',  'pull'], cwd=config[repo]['path'], check=True)
+        subprocess.run(['/usr/bin/git',  'pull'], cwd=config[repo]['path'], text=True, check=True)
     except subprocess.CalledProcessError as err:
         raise InternalServerError(err)
 
 
     for repo in config:
         if 'command' in config[repo]:
-            commands = config[repo]['command'].split(';')
-            for command in commands:
-                try:
-                    subprocess.run(command.lstrip().split(' '), cwd=config[repo]['path'], check=True)
-                except subprocess.CalledProcessError as err:
-                    raise InternalServerError(err)
+            try:
+                subprocess.run(command, cwd=config[repo]['path'], shell=True, text=True, check=True)
+            except subprocess.CalledProcessError as err:
+                raise InternalServerError(err)
 
     return 'Deployed website from {}'.format(repo)
 
