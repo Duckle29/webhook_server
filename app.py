@@ -57,13 +57,13 @@ def deploy(data, guid):
 
 
     for repo in config:
-    if 'command' in config[repo]:
-        commands = config[repo]['command'].split(';')
-        for command in commands:
-            try:
-                subprocess.run(command.lstrip().split(' '), cwd=config[repo]['path'], check=True)
-            except subprocess.CalledProcessError as err:
-                raise InternalServerError(err)
+        if 'command' in config[repo]:
+            commands = config[repo]['command'].split(';')
+            for command in commands:
+                try:
+                    subprocess.run(command.lstrip().split(' '), cwd=config[repo]['path'], check=True)
+                except subprocess.CalledProcessError as err:
+                    raise InternalServerError(err)
 
     return 'Deployed website from {}'.format(repo)
 
