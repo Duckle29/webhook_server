@@ -41,6 +41,12 @@ def deploy(data, guid):
 
     if repo not in config:
         return 'Nothing to do for this repo, skipped.'
+
+    if 'production_branch' in config[repo]:
+        production_branch = config[repo][production_branch]
+    else:
+        production_branch = 'master'
+    
     if branch != master_branch:
         return 'Not production branch, skipped.'
 
@@ -48,6 +54,16 @@ def deploy(data, guid):
         subprocess.run(['/usr/bin/git',  'pull'], cwd=config[repo]['path'], check=True)
     except subprocess.CalledProcessError as err:
         raise InternalServerError(err)
+
+
+    for repo in config:
+    if 'command' in config[repo]:
+        commands = config[repo]['command'].split(';')
+        for command in commands:
+            try:
+                subprocess.run(command.lstrip().split(' '), cwd=config[repo]['path'], check=True)
+            except subprocess.CalledProcessError as err:
+                raise InternalServerError(err)
 
     return 'Deployed website from {}'.format(repo)
 
