@@ -37,7 +37,7 @@ def deploy(data, guid):
 
     repo = data['repository']['full_name']
     branch = data['ref'].split('/')[-1]
-    master_branch = data['repository']['master_branch']
+    main_branch = data['repository']['master_branch']
 
     if repo not in config:
         return 'Nothing to do for this repo, skipped.'
@@ -45,9 +45,9 @@ def deploy(data, guid):
     if 'production_branch' in config[repo]:
         production_branch = config[repo][production_branch]
     else:
-        production_branch = 'master'
+        production_branch = main_branch
     
-    if branch != master_branch:
+    if branch != production_branch:
         return 'Not production branch, skipped.'
 
     try:
@@ -55,14 +55,12 @@ def deploy(data, guid):
     except subprocess.CalledProcessError as err:
         raise InternalServerError(err)
 
-
-    for repo in config:
-        if 'command' in config[repo]:
-            command = config[repo]['command']
-            try:
-                subprocess.run(command, cwd=config[repo]['path'], shell=True, text=True, check=True)
-            except subprocess.CalledProcessError as err:
-                raise InternalServerError(err)
+    if 'command' in config[repo]:
+        command = config[repo]['command']
+        try:
+            subprocess.run(command, cwd=config[repo]['path'], shell=True, text=True, check=True)
+        except subprocess.CalledProcessError as err:
+            raise InternalServerError(err)
 
     return 'Deployed website from {}'.format(repo)
 
